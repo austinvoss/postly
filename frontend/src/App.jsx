@@ -1,16 +1,28 @@
-import { BrowserRouter as Router, Switch, Route, Link } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { useState } from "react";
 
 export default function App() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
   return (
     <Router>
       <div className="container mx-auto text-neutral-50">
-        <Switch>
-          <Route path="/posts">{/* My Posts Component Here */}</Route>
-          <Route path="/profile">{/* My Profile Component Here */}</Route>
-          <Route path="/login">{/* My Login Component Here */}</Route>
-          <Route path="/register">{/* My Register Component Here */}</Route>
-          <Route path="/">{/* My Home Component or Redirect Here */}</Route>
-        </Switch>
+        <Routes>
+          <Route path="/posts" element={<PostsComponent />} />
+          <Route path="/profile" element={<ProfileComponent />} />
+          <Route path="/login" element={<LoginComponent />} />
+          <Route path="/register" element={<RegisterComponent />} />
+          <Route
+            path="/"
+            element={
+              isAuthenticated ? (
+                <PostsComponent />
+              ) : (
+                <LoginOrRegisterComponent />
+              )
+            }
+          />
+        </Routes>
       </div>
     </Router>
   );
