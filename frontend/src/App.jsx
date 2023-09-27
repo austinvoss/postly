@@ -7,7 +7,9 @@ import Register from "./components/Register";
 import LoginOrRegister from "./components/LoginOrRegister";
 
 export default function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(
+    !!localStorage.getItem("token")
+  );
 
   return (
     <Router>
@@ -15,8 +17,24 @@ export default function App() {
         <Routes>
           <Route path="/posts" element={<Posts />} />
           <Route path="/profile" element={<Profile />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
+          <Route
+            path="/login"
+            element={
+              <Login
+                isAuthenticated={isAuthenticated}
+                setIsAuthenticated={setIsAuthenticated}
+              />
+            }
+          />
+          <Route
+            path="/register"
+            element={
+              <Register
+                isAuthenticated={isAuthenticated}
+                setIsAuthenticated={setIsAuthenticated}
+              />
+            }
+          />
           <Route
             path="/"
             element={isAuthenticated ? <Posts /> : <LoginOrRegister />}

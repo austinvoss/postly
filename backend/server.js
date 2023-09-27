@@ -1,9 +1,12 @@
 require("dotenv").config();
 const express = require("express");
+const cors = require("cors");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const app = express();
 const PORT = process.env.PORT || 3001;
+
+app.use(cors());
 
 const authenticateJWT = require("./authMiddleware");
 
@@ -18,8 +21,8 @@ app.get("/", (req, res) => {
   res.send("Hello, Postly!");
 });
 
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+app.listen(3001, () => {
+  console.log("Server is running on port 3001");
 });
 
 const db = require("./dbconfig");
@@ -28,11 +31,26 @@ const db = require("./dbconfig");
 app.post("/posts", async (req, res) => {
   try {
     const { title, content } = req.body;
-    await db.none("INSERT INTO posts (title, content) VALUES ($1, $2)", [
-      title,
-      content,
-    ]);
+    await db.none(
+      "INSERT INTO posts (title, content, author_id) VALUES ($1, $2, $3)",
+      [
+        title,
+        content,
+        authorId, // This would come from the logged-in user
+      ]
+    );
+
     res.json({ message: "Post added successfully" });
+  } catch (error) {
+    res.json({ error: error.message });
+  }
+});
+
+// Get all posts
+app.get("/posts", async (req, res) => {
+  try {
+    const posts = await db.any("SELECT * FROM posts");
+    res.json(posts);
   } catch (error) {
     res.json({ error: error.message });
   }
@@ -84,7 +102,15 @@ app.post("/register", async (req, res) => {
 app.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
-    const user = await db.one("SELECT * FROM users WHERE email = $1", [email]);
+    const user = await db.oneOrNone("SELECT * FROM users WHERE email = $1", [
+      email,
+    ]); // Use oneOrNone method instead
+
+    // Check if user exists
+    if (!user) {
+      return res.json({ message: "User not found" }); // If user is not found, return a message
+    }
+
     const match = await bcrypt.compare(password, user.password); // Compare encrypted password
 
     if (match) {
